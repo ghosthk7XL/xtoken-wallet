@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BNB Details - XToken Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-animated"></div>
+  <canvas id="particle-canvas"></canvas>
+  
+  <div class="container page-transition">
+    <a href="dashboard.html" class="back-btn">←</a>
+    
+    <div class="asset-hero">
+      <div class="asset-hero-icon">₿</div>
+      <h1>BNB</h1>
+      <p style="color: rgba(255,255,255,0.6); margin-bottom: 0.5rem;">Binance Smart Chain</p>
+      <div class="asset-hero-price text-gradient-gold" data-bnb-price>$680.00</div>
+      <div class="asset-hero-change positive">
+        <span>📈</span>
+        <span>+3.24%</span>
+      </div>
+    </div>
+    
+    <!-- Chart Placeholder -->
+    <div class="chart-container">
+      <div class="chart-line"></div>
+      <div style="position: absolute; bottom: 1rem; left: 1rem; right: 1rem; display: flex; justify-content: space-between; font-size: 0.75rem; color: rgba(255,255,255,0.4);">
+        <span>1H</span>
+        <span>1D</span>
+        <span style="color: var(--neon-purple); font-weight: 600;">1W</span>
+        <span>1M</span>
+        <span>1Y</span>
+        <span>ALL</span>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-grid" style="margin-bottom: 2rem;">
+      <a href="withdraw-options.html" class="action-btn" style="background: var(--gradient-primary); border: none;">
+        <span style="font-size: 1.5rem;">↑</span>
+        <span>Send</span>
+      </a>
+      <button class="action-btn" onclick="alert('Receive BNB')">
+        <span style="font-size: 1.5rem;">↓</span>
+        <span>Receive</span>
+      </button>
+      <button class="action-btn" onclick="alert('Swap BNB')">
+        <span style="font-size: 1.5rem;">⇄</span>
+        <span>Swap</span>
+      </button>
+      <a href="withdraw-options.html" class="action-btn" style="border-color: var(--neon-orange); color: var(--neon-orange);">
+        <span style="font-size: 1.5rem;">🏦</span>
+        <span>Withdraw</span>
+      </a>
+    </div>
+    
+    <!-- Transaction History -->
+    <h3 style="margin-bottom: 1rem;">Transaction History</h3>
+    <div class="tx-list">
+      <div class="tx-item">
+        <div class="tx-icon sent">↑</div>
+        <div class="tx-info">
+          <div class="tx-type">Sent BNB</div>
+          <div class="tx-date">Mar 15, 2024 • 14:32</div>
+          <div class="tx-address">To: 0xea66...131dOB</div>
+        </div>
+        <div class="tx-amount sent">-622,844.99999</div>
+      </div>
+      
+      <div class="tx-item">
+        <div class="tx-icon received">↓</div>
+        <div class="tx-info">
+          <div class="tx-type">Received BNB</div>
+          <div class="tx-date">Mar 10, 2024 • 09:15</div>
+          <div class="tx-address">From: 0x8f21...9a2b</div>
+        </div>
+        <div class="tx-amount received">+1,450,000.00</div>
+      </div>
+      
+      <div class="tx-item">
+        <div class="tx-icon received">↓</div>
+        <div class="tx-info">
+          <div class="tx-type">Staking Reward</div>
+          <div class="tx-date">Mar 1, 2024 • 00:00</div>
+          <div class="tx-address">From: BSC Staking</div>
+        </div>
+        <div class="tx-amount received">+205.00000001</div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="shared.js"></script>
+</body>
+</html>
