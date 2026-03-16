@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Withdraw - XToken Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-animated"></div>
+  <canvas id="particle-canvas"></canvas>
+  
+  <div class="container page-transition">
+    <a href="asset-details.html" class="back-btn">←</a>
+    
+    <div class="form-header">
+      <h2 class="form-title">Withdraw Funds</h2>
+      <p class="form-subtitle">Choose your withdrawal method</p>
+    </div>
+    
+    <!-- External Wallet Option -->
+    <a href="withdraw-form.html?type=wallet" class="glass-card withdraw-option">
+      <div class="withdraw-icon">🔗</div>
+      <div class="withdraw-info">
+        <h3>External Wallet</h3>
+        <p>Send to any BSC, ETH, or BTC address</p>
+      </div>
+      <span style="font-size: 1.5rem; opacity: 0.5;">→</span>
+    </a>
+    
+    <!-- Bank/Fiat Option -->
+    <div class="glass-card" style="padding: 1.5rem; margin-top: 1.5rem;">
+      <h3 style="margin-bottom: 1rem;">Withdraw to Bank/Fiat</h3>
+      <p style="font-size: 0.875rem; color: rgba(255,255,255,0.6); margin-bottom: 1rem;">
+        Convert crypto to cash and send directly to your account
+      </p>
+      
+      <div class="fiat-grid">
+        <a href="withdraw-form.html?type=cashapp" class="glass-card fiat-option">
+          <div class="fiat-icon" style="color: #00d632; background: rgba(0, 214, 50, 0.1);">💵</div>
+          <span class="fiat-name">Cash App</span>
+        </a>
+        
+        <a href="withdraw-form.html?type=paypal" class="glass-card fiat-option">
+          <div class="fiat-icon" style="color: #003087; background: rgba(0, 48, 135, 0.1);">🅿️</div>
+          <span class="fiat-name">PayPal</span>
+        </a>
+        
+        <a href="withdraw-form.html?type=bank&bank=chase" class="glass-card fiat-option">
+          <div class="fiat-icon" style="color: #117aca; background: rgba(17, 122, 202, 0.1);">🏦</div>
+          <span class="fiat-name">Chase</span>
+        </a>
+        
+        <a href="withdraw-form.html?type=bank&bank=wells" class="glass-card fiat-option">
+          <div class="fiat-icon" style="color: #d71e28; background: rgba(215, 30, 40, 0.1);">🏛️</div>
+          <span class="fiat-name">Wells Fargo</span>
+        </a>
+        
+        <a href="withdraw-form.html?type=bank&boa=boa" class="glass-card fiat-option">
+          <div class="fiat-icon" style="color: #e31837; background: rgba(227, 24, 55, 0.1);">🏢</div>
+          <span class="fiat-name">Bank of America</span>
+        </a>
+        
+        <a href="withdraw-form.html?type=bank&bank=revolut" class="glass-card fiat-option">
+          <div class="fiat-icon" style="color: #0075eb; background: rgba(0, 117, 235, 0.1);">💳</div>
+          <span class="fiat-name">Revolut</span>
+        </a>
+        
+        <a href="withdraw-form.html?type=bank&bank=wise" class="glass-card fiat-option">
+          <div class="fiat-icon" style="color: #9fe870; background: rgba(159, 232, 112, 0.1);">🌐</div>
+          <span class="fiat-name">Wise</span>
+        </a>
+        
+        <a href="withdraw-form.html?type=bank&bank=other" class="glass-card fiat-option">
+          <div class="fiat-icon" style="color: var(--neon-purple);">🏧</div>
+          <span class="fiat-name">Other Bank</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <script src="shared.js"></script>
+</body>
+</html>
