@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Success - XToken Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-animated"></div>
+  <canvas id="particle-canvas"></canvas>
+  <canvas id="confetti-canvas"></canvas>
+  
+  <div class="success-container page-transition">
+    <div class="success-icon">✓</div>
+    
+    <h1 class="success-title">Withdrawal Initiated!</h1>
+    <p class="success-message">
+      Your transaction has been submitted and is being processed. 
+      You will receive a confirmation email shortly.
+    </p>
+    
+    <!-- Receipt Card -->
+    <div class="glass-card receipt-card">
+      <div class="receipt-header">
+        <div class="receipt-logo">XTOKEN</div>
+        <div class="receipt-date" data-tx-date>Mar 16, 2024 • 03:45 PM</div>
+      </div>
+      
+      <div class="receipt-row">
+        <span class="receipt-label">Transaction ID</span>
+        <span class="receipt-value" data-tx-id style="font-size: 0.75rem;">0x...</span>
+      </div>
+      
+      <div class="receipt-row">
+        <span class="receipt-label">Amount Withdrawn</span>
+        <span class="receipt-value" data-tx-amount>$0.00</span>
+      </div>
+      
+      <div class="receipt-row">
+        <span class="receipt-label">BNB Equivalent</span>
+        <span class="receipt-value" data-tx-bnb>0.00000000 BNB</span>
+      </div>
+      
+      <div class="receipt-row">
+        <span class="receipt-label">Destination</span>
+        <span class="receipt-value" data-tx-destination>--</span>
+      </div>
+      
+      <div class="receipt-row">
+        <span class="receipt-label">Processing Fee</span>
+        <span class="receipt-value">$300.00</span>
+      </div>
+      
+      <div class="receipt-row">
+        <span class="receipt-label">Status</span>
+        <span class="receipt-value success">Completed</span>
+      </div>
+      
+      <div style="text-align: center; margin-top: 1rem;">
+        <span class="status-badge">Processing</span>
+      </div>
+    </div>
+    
+    <a href="dashboard.html" class="btn btn-glow" style="min-width: 250px;">
+      <span>←</span>
+      <span>Back to Dashboard</span>
+    </a>
+    
+    <button onclick="window.print()" class="btn btn-secondary" style="margin-top: 1rem; min-width: 250px;">
+      <span>🖨️</span>
+      <span>Save Receipt</span>
+    </button>
+  </div>
+  
+  <script src="shared.js"></script>
+</body>
+</html>
