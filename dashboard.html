@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - XToken Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-animated"></div>
+  <canvas id="particle-canvas"></canvas>
+  
+  <div class="container page-transition">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="user-info">
+        <div class="user-avatar">DG</div>
+        <div>
+          <div style="font-weight: 600;">Donte's Wallet</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5);">0x7a8f...3d2e</div>
+        </div>
+      </div>
+      <div class="price-ticker" data-bnb-price>
+        $680.00
+        <span class="pulse-arrow">📈</span>
+      </div>
+    </div>
+    
+    <!-- Security Badge -->
+    <div style="text-align: center;">
+      <div class="security-badge">
+        <span>🔒</span>
+        <span>Protected & Encrypted</span>
+      </div>
+    </div>
+    
+    <!-- Portfolio Card -->
+    <div class="glass-card portfolio-card">
+      <div class="portfolio-header">
+        <span class="portfolio-label">Total Balance</span>
+        <button class="eye-toggle" id="eye-toggle">👁️</button>
+      </div>
+      <div class="balance-amount text-gradient" data-usd-balance>
+        $562,360.00
+      </div>
+      <div class="balance-change">
+        <span>📈</span>
+        <span>+3.24%</span>
+        <span style="opacity: 0.7; margin-left: 0.25rem;">($17,680)</span>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-grid">
+      <a href="withdraw-options.html" class="action-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span>Send</span>
+      </a>
+      <button class="action-btn" onclick="alert('Receive feature coming soon')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Receive</span>
+      </button>
+      <button class="action-btn" onclick="alert('Swap feature coming soon')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        <span>Swap</span>
+      </button>
+      <button class="action-btn" onclick="alert('More features coming soon')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="1"></circle>
+          <circle cx="19" cy="12" r="1"></circle>
+          <circle cx="5" cy="12" r="1"></circle>
+        </svg>
+        <span>More</span>
+      </button>
+    </div>
+    
+    <!-- Assets Section -->
+    <div class="assets-section">
+      <div class="section-header">
+        <h3 class="section-title">Your Assets</h3>
+        <span style="font-size: 0.875rem; color: rgba(255,255,255,0.5);">View All</span>
+      </div>
+      
+      <!-- BNB Card -->
+      <a href="asset-details.html" class="glass-card asset-card">
+        <div class="asset-icon bnb">₿</div>
+        <div class="asset-info">
+          <div class="asset-name">
+            BNB
+            <span class="asset-chain">BSC</span>
+          </div>
+          <div class="mini-chart"></div>
+        </div>
+        <div class="asset-details">
+          <div class="asset-balance" data-bnb-balance>827.00000001</div>
+          <div class="asset-value" data-usd-balance data-convert="bnb">$562,360.00</div>
+          <div class="asset-change positive">+3.24% 📈</div>
+        </div>
+      </a>
+      
+      <!-- USDT Card -->
+      <div class="glass-card asset-card" style="opacity: 0.6;">
+        <div class="asset-icon usdt">₮</div>
+        <div class="asset-info">
+          <div class="asset-name">
+            USDT
+            <span class="asset-chain">BSC</span>
+          </div>
+        </div>
+        <div class="asset-details">
+          <div class="asset-balance">0.00</div>
+          <div class="asset-value">$0.00</div>
+        </div>
+      </div>
+      
+      <!-- USDC Card -->
+      <div class="glass-card asset-card" style="opacity: 0.6;">
+        <div class="asset-icon usdc">$</div>
+        <div class="asset-info">
+          <div class="asset-name">
+            USDC
+            <span class="asset-chain">BSC</span>
+          </div>
+        </div>
+        <div class="asset-details">
+          <div class="asset-balance">0.00</div>
+          <div class="asset-value">$0.00</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Trust Tags -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-bottom: 0.5rem;">
+        <span style="color: var(--neon-green);">✓</span> Non-Custodial 
+        <span style="margin: 0 0.5rem;">•</span>
+        <span style="color: var(--neon-green);">✓</span> Audited
+        <span style="margin: 0 0.5rem;">•</span>
+        <span style="color: var(--neon-green);">✓</span> Phishing Shield
+      </div>
+      <div style="font-size: 0.75rem; color: rgba(255,255,255,0.3);">
+        Your Keys, Your Crypto
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="dashboard.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+      <span>Assets</span>
+    </a>
+    <a href="#" class="nav-item" onclick="alert('Markets coming soon')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"></line>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+      </svg>
+      <span>Markets</span>
+    </a>
+    <a href="#" class="nav-item" onclick="alert('Discover coming soon')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      </svg>
+      <span>Discover</span>
+    </a>
+    <a href="#" class="nav-item" onclick="alert('Settings coming soon')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+  
+  <script src="shared.js"></script>
+</body>
+</html>
