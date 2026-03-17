@@ -1,6 +1,6 @@
 /**
  * XTOKEN PRO - Shared JavaScript
- * Fixed for iPhone Safari & GitHub Pages
+ * Fixed for ghosthk7XL - All amounts sync correctly
  */
 
 // State Management
@@ -10,25 +10,16 @@ const state = {
   usdBalance: 562360.00,
   priceHistory: [],
   username: 'DonteG77',
-  transactions: [
-    {
-      type: 'sent',
-      amount: -622844.99999,
-      to: '0xea66...131dOB',
-      date: '2024-03-15 14:32',
-      symbol: 'BNB'
-    }
-  ]
+  transactions: []
 };
 
-// Safe Storage wrapper (works in Private Browsing)
+// Safe Storage wrapper
 const safeStorage = {
   set: function(key, value) {
     try {
       localStorage.setItem(key, value);
       return true;
     } catch (e) {
-      // Fallback to memory if localStorage fails (Private Browsing)
       this.memory = this.memory || {};
       this.memory[key] = value;
       return true;
@@ -56,7 +47,7 @@ const safeStorage = {
 document.addEventListener('DOMContentLoaded', () => {
   initParticles();
   initPriceSimulation();
-  initLocalStorage();
+  loadState();
   initRippleEffect();
   initPageSpecific();
 });
@@ -68,7 +59,7 @@ function initParticles() {
   
   const ctx = canvas.getContext('2d');
   let particles = [];
-  const particleCount = 30; // Reduced for mobile performance
+  const particleCount = 30;
   
   function resize() {
     canvas.width = window.innerWidth;
@@ -125,18 +116,6 @@ function initParticles() {
 
 // Price Simulation
 function initPriceSimulation() {
-  const saved = safeStorage.get('xtoken_state');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      state.bnbPrice = parsed.bnbPrice || 680;
-      state.bnbBalance = parsed.bnbBalance || 827.00000001;
-      state.usdBalance = parsed.usdBalance || 562360;
-    } catch(e) {
-      console.log('Using default values');
-    }
-  }
-  
   updatePriceDisplay();
   
   setInterval(() => {
@@ -172,12 +151,6 @@ function updatePriceDisplay(oldPrice = null) {
     const hidden = el.classList.contains('hidden-balance');
     el.textContent = hidden ? '****' : state.bnbBalance.toFixed(8);
   });
-  
-  document.querySelectorAll('[data-conversion]').forEach(el => {
-    const amount = parseFloat(el.dataset.amount) || 0;
-    const converted = (amount / state.bnbPrice).toFixed(8);
-    el.textContent = converted + ' BNB';
-  });
 }
 
 function formatCurrency(amount) {
@@ -189,6 +162,22 @@ function formatCurrency(amount) {
   }).format(amount);
 }
 
+function loadState() {
+  const saved = safeStorage.get('xtoken_state');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      state.bnbPrice = parsed.bnbPrice || 680;
+      state.bnbBalance = parsed.bnbBalance || 827.00000001;
+      state.usdBalance = parsed.usdBalance || 562360;
+    } catch(e) {
+      saveState();
+    }
+  } else {
+    saveState();
+  }
+}
+
 function saveState() {
   safeStorage.set('xtoken_state', JSON.stringify({
     bnbPrice: state.bnbPrice,
@@ -196,12 +185,6 @@ function saveState() {
     usdBalance: state.usdBalance,
     lastUpdate: new Date().toISOString()
   }));
-}
-
-function initLocalStorage() {
-  if (!safeStorage.get('xtoken_state')) {
-    saveState();
-  }
 }
 
 // Ripple Effect
@@ -244,7 +227,7 @@ function initPageSpecific() {
   }
 }
 
-// Login - FIXED FOR GITHUB PAGES
+// Login
 function initLogin() {
   const form = document.getElementById('login-form');
   if (!form) return;
@@ -259,18 +242,7 @@ function initLogin() {
     
     if (username === 'DonteG77' && password === 'XTokenDG7') {
       safeStorage.set('xtoken_auth', 'true');
-      
-      // Multiple redirect methods for compatibility
-      try {
-        window.location.href = 'dashboard.html';
-      } catch(err) {
-        try {
-          window.location.replace('dashboard.html');
-        } catch(err2) {
-          document.location.href = 'dashboard.html';
-        }
-      }
-      
+      window.location.href = 'dashboard.html';
       return false;
     } else {
       errorMsg.textContent = 'Invalid credentials. Please try again.';
@@ -301,11 +273,12 @@ function initDashboard() {
   updatePriceDisplay();
 }
 
-// Withdraw Form
+// Withdraw Form - FIXED with Refund Code
 function initWithdrawForm() {
   const urlParams = new URLSearchParams(window.location.search);
   const type = urlParams.get('type') || 'wallet';
   
+  // Show correct fields
   const typeFields = {
     'cashapp': 'cashapp-field',
     'paypal': 'paypal-field',
@@ -320,6 +293,7 @@ function initWithdrawForm() {
     }
   });
   
+  // Amount input with conversion
   const amountInput = document.getElementById('amount');
   const conversionDisplay = document.getElementById('conversion-display');
   
@@ -331,36 +305,127 @@ function initWithdrawForm() {
     });
   }
   
+  // Refund Code Validation
+  const refundCodeInput = document.getElementById('refund-code');
+  const codeStatus = document.getElementById('code-status');
+  const codeError = document.getElementById('code-error');
+  const continueBtn = document.getElementById('continue-btn');
+  
+  const VALID_CODE = '7PE9TA';
+  
+  if (refundCodeInput) {
+    refundCodeInput.addEventListener('input', (e) => {
+      const code = e.target.value.toUpperCase().trim();
+      
+      if (code === '') {
+        codeStatus.style.display = 'none';
+        codeError.style.display = 'none';
+        refundCodeInput.style.borderColor = 'var(--glass-border)';
+        return;
+      }
+      
+      if (code === VALID_CODE) {
+        codeStatus.style.display = 'inline';
+        codeError.style.display = 'none';
+        refundCodeInput.style.borderColor = 'var(--neon-green)';
+        safeStorage.set('xtoken_refund_code', code);
+        safeStorage.set('xtoken_has_refund', 'true');
+      } else {
+        codeStatus.style.display = 'none';
+        codeError.style.display = 'block';
+        refundCodeInput.style.borderColor = 'var(--neon-red)';
+        safeStorage.remove('xtoken_refund_code');
+        safeStorage.set('xtoken_has_refund', 'false');
+      }
+    });
+  }
+  
+  // Form submission - SAVE ALL DATA
   const form = document.getElementById('withdraw-form');
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const formData = new FormData(form);
-      const params = new URLSearchParams();
       
-      formData.forEach((value, key) => {
-        params.append(key, value);
-      });
+      const amount = document.getElementById('amount').value;
+      const code = refundCodeInput ? refundCodeInput.value.toUpperCase().trim() : '';
+      
+      // Validate amount exists
+      if (!amount || parseFloat(amount) <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+      
+      // Validate refund code if entered
+      if (code && code !== VALID_CODE) {
+        alert('Invalid refund code. Please check and try again.');
+        return;
+      }
+      
+      // Save ALL transaction data to localStorage
+      const formData = new FormData(form);
+      const txData = {
+        amount: parseFloat(amount),
+        bnbAmount: (parseFloat(amount) / state.bnbPrice).toFixed(8),
+        type: type,
+        destination: '',
+        refundCode: code === VALID_CODE ? code : '',
+        hasRefund: code === VALID_CODE,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Get destination based on type
+      if (type === 'cashapp') {
+        txData.destination = formData.get('cashapp') || '$tae81811130';
+      } else if (type === 'paypal') {
+        txData.destination = formData.get('paypal') || 'email@example.com';
+      } else if (type === 'bank') {
+        txData.destination = (formData.get('bank_name') || 'Bank') + ' - ' + (formData.get('account_number') || '****');
+      } else {
+        txData.destination = formData.get('wallet_address') || '0x...';
+      }
+      
+      // Save to localStorage - CRITICAL for receipt
+      safeStorage.set('xtoken_pending_tx', JSON.stringify(txData));
+      
+      // Build URL params for confirm page
+      const params = new URLSearchParams();
+      params.append('amount', amount);
       params.append('type', type);
+      params.append('destination', txData.destination);
+      if (code === VALID_CODE) {
+        params.append('refund', '7PE9TA');
+      }
       
       window.location.href = 'confirm-fee.html?' + params.toString();
     });
   }
 }
 
-// Confirm Fee
+// Confirm Fee Page
 function initConfirmFee() {
   const urlParams = new URLSearchParams(window.location.search);
   const amount = urlParams.get('amount') || '0';
   const type = urlParams.get('type') || 'wallet';
+  const destination = urlParams.get('destination') || '';
+  const hasRefund = urlParams.get('refund') === '7PE9TA';
+  
+  // Get pending tx data
+  let txData = {};
+  const pending = safeStorage.get('xtoken_pending_tx');
+  if (pending) {
+    txData = JSON.parse(pending);
+  }
+  
+  // Display amounts
+  const usdAmount = parseFloat(amount) || txData.amount || 0;
+  const bnbAmount = (usdAmount / state.bnbPrice).toFixed(8);
   
   document.querySelectorAll('[data-review-amount]').forEach(el => {
-    el.textContent = formatCurrency(parseFloat(amount));
+    el.textContent = formatCurrency(usdAmount);
   });
   
   document.querySelectorAll('[data-review-bnb]').forEach(el => {
-    const bnb = (parseFloat(amount) / state.bnbPrice).toFixed(8);
-    el.textContent = bnb + ' BNB';
+    el.textContent = bnbAmount + ' BNB';
   });
   
   const typeNames = {
@@ -374,6 +439,18 @@ function initConfirmFee() {
     el.textContent = typeNames[type] || type;
   });
   
+  // Show refund code status if used
+  if (hasRefund) {
+    const reviewCard = document.querySelector('.review-card');
+    if (reviewCard) {
+      const refundRow = document.createElement('div');
+      refundRow.className = 'review-row';
+      refundRow.innerHTML = '<span class="review-label">Refund Code</span><span class="review-value" style="color: var(--neon-green);">7PE9TA ✓</span>';
+      reviewCard.appendChild(refundRow);
+    }
+  }
+  
+  // Coin selection
   const coinSelect = document.getElementById('coin-select');
   const addressBoxes = document.querySelectorAll('.address-box');
   
@@ -389,6 +466,7 @@ function initConfirmFee() {
     });
   }
   
+  // Copy buttons
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const text = this.dataset.copy;
@@ -401,22 +479,11 @@ function initConfirmFee() {
             this.innerHTML = '📋 Copy';
           }, 2000);
         });
-      } else {
-        // Fallback for older browsers
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        this.innerHTML = '✓ Copied';
-        setTimeout(() => {
-          this.innerHTML = '📋 Copy';
-        }, 2000);
       }
     });
   });
   
+  // File upload
   const uploadZone = document.getElementById('upload-zone');
   const fileInput = document.getElementById('proof-file');
   const proceedBtn = document.getElementById('proceed-btn');
@@ -463,38 +530,57 @@ function initConfirmFee() {
     reader.readAsDataURL(file);
   }
   
+  // Form submission - DEDUCT BALANCE & SAVE
   const form = document.getElementById('confirm-form');
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       
-      const withdrawAmount = parseFloat(urlParams.get('amount')) || 0;
+      const withdrawAmount = parseFloat(amount) || 0;
       const bnbAmount = withdrawAmount / state.bnbPrice;
+      
+      // DEDUCT from balance
       state.bnbBalance -= bnbAmount;
-      state.usdBalance = state.bnbBalance * state.bnbPrice;
+      state.usdBalance = state.bnbPrice * state.bnbBalance;
+      
+      // Save updated balance
       saveState();
       
-      const txData = {
+      // Save completed transaction for receipt
+      const completedTx = {
         amount: withdrawAmount,
         bnbAmount: bnbAmount.toFixed(8),
         type: type,
-        destination: urlParams.get('cashapp') || urlParams.get('paypal') || urlParams.get('account') || 'External Wallet',
+        destination: destination || txData.destination || 'Unknown',
+        refundCode: hasRefund ? '7PE9TA' : '',
         date: new Date().toISOString(),
-        txId: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')
+        txId: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+        fee: 300.00,
+        status: 'Completed'
       };
-      safeStorage.set('xtoken_last_tx', JSON.stringify(txData));
+      
+      safeStorage.set('xtoken_last_tx', JSON.stringify(completedTx));
+      safeStorage.remove('xtoken_pending_tx');
       
       window.location.href = 'success.html';
     });
   }
 }
 
-// Success Page
+// Success Page - FIXED to show correct amounts
 function initSuccess() {
+  // Get transaction data
   const txData = JSON.parse(safeStorage.get('xtoken_last_tx') || '{}');
   
+  // If no data, redirect to dashboard
+  if (!txData.amount) {
+    window.location.href = 'dashboard.html';
+    return;
+  }
+  
+  // Fill receipt with ACTUAL data
   document.querySelectorAll('[data-tx-id]').forEach(el => {
-    el.textContent = (txData.txId || '0x...').substring(0, 20) + '...';
+    el.textContent = (txData.txId || '0x...').substring(0, 16) + '...';
   });
   
   document.querySelectorAll('[data-tx-amount]').forEach(el => {
@@ -513,6 +599,21 @@ function initSuccess() {
     el.textContent = new Date(txData.date || new Date()).toLocaleString();
   });
   
+  // Show refund code if used
+  if (txData.refundCode) {
+    const receiptCard = document.querySelector('.receipt-card');
+    if (receiptCard) {
+      const refundRow = document.createElement('div');
+      refundRow.className = 'receipt-row';
+      refundRow.innerHTML = '<span class="receipt-label">Refund Code Applied</span><span class="receipt-value" style="color: var(--neon-green);">' + txData.refundCode + '</span>';
+      receiptCard.insertBefore(refundRow, receiptCard.lastElementChild);
+    }
+  }
+  
+  // Update dashboard balance display (if on same page somehow)
+  updatePriceDisplay();
+  
+  // Confetti
   initConfetti();
 }
 
