@@ -7,6 +7,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Proper way to hide file input - NOT display: none */
+    .file-input-hidden {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
+  </style>
 </head>
 <body>
   <div class="bg-animated"></div>
@@ -97,13 +109,18 @@
       </button>
     </div>
     
-    <!-- File Upload - Universal Browser Compatible -->
+    <!-- File Upload - Fixed for all browsers -->
     <div class="upload-zone" id="upload-zone">
-      <input type="file" id="proof-file" accept="image/*" style="display: none;">
-      <div class="upload-icon">📤</div>
-      <div class="upload-text">Upload Transaction Proof</div>
-      <div class="upload-hint">Click to select photo<br>PNG, JPG up to 5MB</div>
+      <!-- Label wraps everything for proper browser behavior -->
+      <label for="proof-file" style="display: block; width: 100%; cursor: pointer; margin: 0;">
+        <div class="upload-icon">📤</div>
+        <div class="upload-text">Upload Transaction Proof</div>
+        <div class="upload-hint">Click to select photo<br>PNG, JPG up to 5MB</div>
+      </label>
     </div>
+    
+    <!-- File input: NOT display:none, positioned off-screen -->
+    <input type="file" id="proof-file" class="file-input-hidden" accept="image/*">
     
     <!-- Warning -->
     <div class="warning-box">
@@ -220,18 +237,13 @@
         });
       });
       
-      // FILE UPLOAD - Universal Browser Compatible
+      // FILE UPLOAD - Fixed for all browsers
       var uploadZone = document.getElementById('upload-zone');
       var fileInput = document.getElementById('proof-file');
       var proceedBtn = document.getElementById('proceed-btn');
       
-      if (uploadZone && fileInput) {
-        // Click on upload zone triggers file input
-        uploadZone.addEventListener('click', function(e) {
-          fileInput.click();
-        });
-        
-        // File selected
+      if (fileInput) {
+        // File selected handler
         fileInput.addEventListener('change', function(e) {
           if (e.target.files && e.target.files[0]) {
             handleFile(e.target.files[0]);
@@ -255,8 +267,12 @@
         var reader = new FileReader();
         
         reader.onload = function(e) {
-          uploadZone.innerHTML = '<img src="' + e.target.result + '" class="upload-preview" alt="Preview" style="max-width: 100%; max-height: 150px; border-radius: 8px;"><p class="upload-text">✓ File uploaded</p><p class="upload-hint">' + file.name + '</p>';
+          // Replace label content with preview
+          var label = uploadZone.querySelector('label');
+          label.innerHTML = '<img src="' + e.target.result + '" class="upload-preview" alt="Preview" style="max-width: 100%; max-height: 150px; border-radius: 8px; display: block; margin: 0 auto;"><p class="upload-text" style="margin-top: 0.5rem;">✓ File uploaded</p><p class="upload-hint">' + file.name + '</p>';
           uploadZone.classList.add('has-file');
+          
+          // Enable proceed button
           if (proceedBtn) {
             proceedBtn.disabled = false;
             proceedBtn.classList.add('btn-glow');
@@ -268,7 +284,8 @@
         
         reader.onerror = function() {
           // Fallback if preview fails
-          uploadZone.innerHTML = '<div class="upload-icon">✓</div><p class="upload-text">File selected</p><p class="upload-hint">' + file.name + '</p>';
+          var label = uploadZone.querySelector('label');
+          label.innerHTML = '<div class="upload-icon">✓</div><p class="upload-text">File selected</p><p class="upload-hint">' + file.name + '</p>';
           uploadZone.classList.add('has-file');
           if (proceedBtn) {
             proceedBtn.disabled = false;
@@ -279,7 +296,7 @@
         reader.readAsDataURL(file);
       }
       
-      // Proceed button - Universal redirect
+      // Proceed button
       if (proceedBtn) {
         proceedBtn.addEventListener('click', function(e) {
           e.preventDefault();
