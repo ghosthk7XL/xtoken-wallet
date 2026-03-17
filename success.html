@@ -26,37 +26,43 @@
     <div class="glass-card receipt-card">
       <div class="receipt-header">
         <div class="receipt-logo">XTOKEN</div>
-        <div class="receipt-date" data-tx-date>Mar 16, 2024 • 03:45 PM</div>
+        <div class="receipt-date" id="tx-date">Mar 16, 2024 • 03:45 PM</div>
       </div>
       
       <div class="receipt-row">
         <span class="receipt-label">Transaction ID</span>
-        <span class="receipt-value" data-tx-id style="font-size: 0.75rem;">0x...</span>
+        <span class="receipt-value" id="tx-id" style="font-size: 0.75rem;">0x...</span>
       </div>
       
       <div class="receipt-row">
         <span class="receipt-label">Amount Withdrawn</span>
-        <span class="receipt-value" data-tx-amount>$0.00</span>
+        <span class="receipt-value" id="tx-amount">$0.00</span>
       </div>
       
       <div class="receipt-row">
         <span class="receipt-label">BNB Equivalent</span>
-        <span class="receipt-value" data-tx-bnb>0.00000000 BNB</span>
+        <span class="receipt-value" id="tx-bnb">0.00000000 BNB</span>
       </div>
       
       <div class="receipt-row">
         <span class="receipt-label">Destination</span>
-        <span class="receipt-value" data-tx-destination>--</span>
+        <span class="receipt-value" id="tx-destination">--</span>
       </div>
       
       <div class="receipt-row">
         <span class="receipt-label">Processing Fee</span>
-        <span class="receipt-value">$300.00</span>
+        <span class="receipt-value" id="tx-fee">$300.00</span>
+      </div>
+      
+      <!-- Refund Code Row (hidden if no code) -->
+      <div class="receipt-row" id="refund-row" style="display: none;">
+        <span class="receipt-label">Refund Code Applied</span>
+        <span class="receipt-value" id="tx-refund" style="color: var(--neon-green);">--</span>
       </div>
       
       <div class="receipt-row">
         <span class="receipt-label">Status</span>
-        <span class="receipt-value success">Completed</span>
+        <span class="receipt-value success" id="tx-status">Completed</span>
       </div>
       
       <div style="text-align: center; margin-top: 1rem;">
@@ -76,5 +82,106 @@
   </div>
   
   <script src="shared.js"></script>
+  <script>
+    // SUCCESS PAGE - Read and display transaction data
+    (function() {
+      console.log('=== SUCCESS PAGE LOADED ===');
+      
+      // Format currency helper
+      function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(amount);
+      }
+      
+      // Get transaction data from localStorage
+      var txData = null;
+      try {
+        var saved = localStorage.getItem('xtoken_last_tx');
+        console.log('Raw localStorage data:', saved);
+        
+        if (saved) {
+          txData = JSON.parse(saved);
+          console.log('Parsed transaction:', txData);
+        } else {
+          console.log('No transaction data found!');
+        }
+      } catch(e) {
+        console.error('Error reading transaction:', e);
+      }
+      
+      // If no data, redirect to dashboard
+      if (!txData || !txData.amount) {
+        console.log('No valid transaction, redirecting to dashboard');
+        window.location.href = 'dashboard.html';
+        return;
+      }
+      
+      // Update all receipt fields with ACTUAL data
+      console.log('Updating receipt with amount:', txData.amount);
+      
+      // Transaction ID
+      var txIdEl = document.getElementById('tx-id');
+      if (txIdEl && txData.txId) {
+        txIdEl.textContent = txData.txId.substring(0, 20) + '...';
+      }
+      
+      // Amount (USD) - THIS IS THE CRITICAL FIX
+      var amountEl = document.getElementById('tx-amount');
+      if (amountEl) {
+        var amount = parseFloat(txData.amount) || 0;
+        amountEl.textContent = formatCurrency(amount);
+        console.log('Set amount to:', formatCurrency(amount));
+      }
+      
+      // BNB Amount
+      var bnbEl = document.getElementById('tx-bnb');
+      if (bnbEl) {
+        bnbEl.textContent = (txData.bnbAmount || '0.00000000') + ' BNB';
+      }
+      
+      // Destination
+      var destEl = document.getElementById('tx-destination');
+      if (destEl) {
+        destEl.textContent = txData.destination || 'Unknown';
+      }
+      
+      // Fee
+      var feeEl = document.getElementById('tx-fee');
+      if (feeEl && txData.fee) {
+        feeEl.textContent = formatCurrency(txData.fee);
+      }
+      
+      // Date
+      var dateEl = document.getElementById('tx-date');
+      if (dateEl && txData.date) {
+        dateEl.textContent = new Date(txData.date).toLocaleString();
+      }
+      
+      // Refund Code (show if exists)
+      if (txData.refundCode) {
+        var refundRow = document.getElementById('refund-row');
+        var refundEl = document.getElementById('tx-refund');
+        if (refundRow && refundEl) {
+          refundRow.style.display = 'flex';
+          refundEl.textContent = txData.refundCode;
+        }
+      }
+      
+      // Update dashboard balance (in background)
+      try {
+        var state = localStorage.getItem('xtoken_state');
+        if (state) {
+          var parsed = JSON.parse(state);
+          console.log('Current balance:', parsed.bnbBalance, 'BNB');
+        }
+      } catch(e) {}
+      
+      console.log('=== RECEIPT UPDATED ===');
+    })();
+  </script>
 </body>
 </html>
